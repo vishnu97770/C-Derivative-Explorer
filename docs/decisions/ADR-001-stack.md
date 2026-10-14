@@ -1,6 +1,6 @@
 # ADR-001: Technology stack
 
-Status: **Proposed — awaiting approval of the open items in docs/progress.md.**
+Status: **Accepted 2026-10-15** (defaults approved). Open: license.
 
 | Area | Decision | Alternatives |
 |------|----------|--------------|

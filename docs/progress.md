@@ -20,3 +20,20 @@ No code written; nothing built or tested.
 6. License: not chosen (MIT / Apache-2.0 / other?).
 7. Error policy: structured status results (proposed) vs exceptions.
 8. Install clang-format/clang-tidy locally (`sudo apt install clang-format clang-tidy`) or rely on CI only?
+
+## 2026-10-15 — Decisions resolved (defaults accepted) and Phases 2–8, 10 (partial)
+Decisions taken: C++17 on GCC+Clang; GoogleTest v1.17.0 via FetchContent pinned by SHA-256; backward difference deferred; flags-only CLI (no config files; `experiments/step-sweep.sh` is the reproducible entry); matplotlib plotting; structured status results. Added a `log` function (domain x>0) to exercise domain-edge handling. License: still undecided, no LICENSE file.
+
+Verified (commands run locally):
+- Fresh `rm -rf build` configure/build/ctest: GCC 15.2 Debug and Clang 21.1.8 Release → 29/29 pass, zero compiler warnings (-Wall -Wextra -Wpedantic -Wconversion -Wshadow).
+- Also passed 28/28 (before the plot test was added): GCC Release, Clang Debug.
+- Clang 21.1.8 ASan+UBSan fresh build (fsanitize flags confirmed in build.ninja), all 29 tests pass, no sanitizer reports.
+- `clang-format` 23.1.3 (from PyPI, scratchpad venv) applied; dry-run clean.
+- Experiment sweep regenerated; plot inspected visually; minima recorded in README.
+
+Not done / not verified:
+- GitHub Actions workflow written but **never run**. CI's Ubuntu clang-format may be an older version than 23.1.3 and could report differences.
+- clang-tidy not run (not installed). Phase 9 (benchmarks), 11 (Clad), 12 (ROOT) not started. LICENSE missing.
+- Phase 13 release checklist not executed; nothing is tagged.
+
+Next action: owner commits and pushes, then check the first CI run; fix any CI-only failures; decide license.
