@@ -70,6 +70,15 @@ CLI (main.cpp) → function registry → comparison engine → derivative method
 
 More detail: `docs/architecture.md`, `docs/requirements.md`, `docs/test-plan.md`, `docs/decisions/ADR-001-stack.md`.
 
+## Benchmarks
+
+```bash
+cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release -DDE_BUILD_BENCHMARKS=ON && cmake --build build/release
+build/release/derivative-bench 200000 15 bench-raw.csv
+```
+
+On the author's laptop (i5-12450H, GCC 15.2 Release) one estimate costs roughly 8–16 ns per point depending on the function; forward and central differ by under 1 ns. Treat as indicative only.
+
 ## Testing
 
 29 CTest entries: GoogleTest unit tests (functions, methods, metrics, comparison, CSV), a CLI integration test (exit codes, CSV shape, unwritable path), and plot-script input validation. Tolerances are justified in comments and `docs/test-plan.md`; convergence-order tests only assert in the truncation-dominated range.
@@ -77,7 +86,7 @@ More detail: `docs/architecture.md`, `docs/requirements.md`, `docs/test-plan.md`
 ## Known limitations
 
 - Backward differences, higher-order stencils, multivariable derivatives, Clad and ROOT integration are **not implemented** (optional extensions in the blueprint).
-- Benchmarks are not implemented; `docs/benchmark-methodology.md` is a plan only.
+- Benchmarks (`-DDE_BUILD_BENCHMARKS=ON`) are a single-machine, single-session measurement; see `docs/benchmark-methodology.md` for the method and caveats.
 - Only double precision and six built-in functions; no user expression parsing.
 - Floating-point results are approximate and platform-dependent in the last bits.
-- No LICENSE file yet (owner has not chosen one).
+- Licensed under MIT (see `LICENSE`). Third-party: GoogleTest (BSD-3-Clause) is fetched at test-configure time only.

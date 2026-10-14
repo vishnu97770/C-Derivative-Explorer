@@ -1,6 +1,6 @@
 # ADR-001: Technology stack
 
-Status: **Accepted 2026-10-15** (defaults approved). Open: license.
+Status: **Accepted 2026-10-15** (defaults approved).
 
 | Area | Decision | Alternatives |
 |------|----------|--------------|
@@ -16,6 +16,8 @@ Status: **Accepted 2026-10-15** (defaults approved). Open: license.
 | Plotting | Python + matplotlib (3.10.0 present) | ROOT (optional later) |
 | Benchmarks | Google Benchmark optional via FetchContent, off by default | hand-rolled harness |
 | Optional AD | Clad adapter, default OFF, compatibility verified at phase 11 | — |
-| License | Undecided (needs user choice) | MIT / Apache-2.0 |
+| License | MIT (decided 2026-10-15; GoogleTest BSD-3 compatible) | Apache-2.0 |
 
 Consequence: baseline needs only a compiler, CMake and network access for the pinned GoogleTest fetch on first configure.
+
+Scope decision 2026-10-15: Clad and ROOT adapters are deferred out of 0.1.0 (optional per blueprint; toolchain risk). Backward difference deferred.
