@@ -52,3 +52,12 @@ License: MIT. Clad/ROOT deferred out of 0.1.0. Fresh-copy check (tracked + unign
 Not verified: GitHub Actions (never run), clang-format/clang-tidy versions on Ubuntu runners, other platforms (macOS/Windows), independent-reader review (REQ-014).
 Release rule: tag v0.1.0 only after the first CI run on main is green.
 Next action: owner commits/pushes, checks CI, then tags.
+
+## 2026-10-16 — Safe implementation phase 1 (B1, B2, R1, exit-code policy)
+Starting state verified: branch feature/clad, HEAD 4868c0e, clean tree. Changes are uncommitted.
+- B1: `.gitignore` `results/` -> `/results/`; experiment CSV/PNG/manifest/bench-raw now trackable; sweep regenerated with `experiments/step-sweep.sh` (old files backed up outside the repo); docs corrected. Regeneration changed only the two sin h=1e-16 rows (now `degenerate_step`).
+- B2: strict integer parsing of the `--log-steps` count (1..100000); also rejects non-finite A/B, trailing colon, and ranges > 100000 steps.
+- R1: `Status::DegenerateStep`; forward checks `x+h==x`, central checks `x-h==x || x+h==x`; precedence invalid_step > invalid_domain > degenerate_step > non_finite.
+- Exit code 3 when every row is non-ok; CSV failure (1) takes precedence.
+- Verification (scratch copy of exactly the files Git would track, 46 files; GCC 15.2.0 / Clang 21.1.8): GCC Debug, GCC Release, Clang Debug, Clang Release, Clang ASan+UBSan each configure/build rc=0, 0 warnings, ctest 37/37 pass. Mutation check (fixes removed in a scratch copy) made 7 tests fail, so the regression tests are effective. Fresh-copy sweep reproduced both tracked CSVs and the sin PNG byte-for-byte.
+- BLOCKED: clang-format and clang-tidy (not installed; nothing installed per instructions). Manual check: no source line > 100 columns, but clang-format conformance is unverified. GitHub CI has not been run on these changes.

@@ -4,7 +4,9 @@
 
 namespace de {
 
-enum class Status { Ok, InvalidStep, InvalidDomain, NonFinite };
+// DegenerateStep: h > 0 but a stencil point rounds to the base point (x + h == x), so the
+// formula would divide by h while using f(x) twice. Distinct from InvalidStep (bad input h).
+enum class Status { Ok, InvalidStep, InvalidDomain, NonFinite, DegenerateStep };
 
 const char* to_string(Status s);
 

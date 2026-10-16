@@ -1,0 +1,6 @@
+command: experiments/step-sweep.sh
+date_utc: 2026-10-16T06:16:58Z
+commit: 4868c0ed75361335be37594de56bfaea512177d5
+working_tree: modified (source differs from the commit above)
+compiler: c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+os: Linux 7.0.0-38-generic

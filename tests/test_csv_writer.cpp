@@ -53,3 +53,14 @@ TEST(Csv, WritesFile) {
     EXPECT_EQ(line, de::kCsvHeader);
     std::remove(path.c_str());
 }
+
+TEST(Csv, DegenerateStepRow) {
+    const auto rs = de::run_comparison(
+        {de::find_function("x2"), {1.0}, {1e-17}, {de::Method::Forward}});
+    std::ostringstream os;
+    de::write_csv(os, rs);
+    // estimate, absolute_error and relative_error are empty; the reason is in status.
+    // h is written with %.17g, so the double nearest 1e-17 prints as 1.0000000000000001e-17.
+    EXPECT_EQ(os.str(), std::string(de::kCsvHeader) +
+                            "\n1,x2,forward,1,1.0000000000000001e-17,,2,,,degenerate_step\n");
+}

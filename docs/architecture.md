@@ -12,7 +12,9 @@ Layers (blueprint §5), each depending only on those above it in the list:
 
 ## Error policy (proposed — needs approval, see ADR-001)
 Batch experiments need one bad configuration not to abort the run, so methods return a **structured result** (value + status), not exceptions:
-`ok | invalid_step | invalid_domain | non_finite`.
+`ok | invalid_step | invalid_domain | non_finite | degenerate_step`.
+`degenerate_step`: h is valid input but a stencil point is not representably distinct from the base point (`x + h == x`; central also checks `x - h == x`). Precedence: invalid_step, then invalid_domain, then degenerate_step, then non_finite.
+CLI exit codes: 0 success, 1 CSV failure, 2 usage, 3 every row non-ok, 70 internal.
 Exceptions are reserved for programmer errors / unexpected internal failures, which fail loudly with a nonzero exit.
 Relative error is `nullopt` when |reference| is zero or below a documented threshold; CSV writes an empty field plus status.
 NaN/inf are never written as numbers; the row carries a non-ok status and empty numeric fields.

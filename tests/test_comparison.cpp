@@ -51,3 +51,17 @@ TEST(Comparison, OverflowVisible) {
         de::run_comparison({de::find_function("exp"), {1000.0}, {0.01}, {de::Method::Central}});
     EXPECT_EQ(rs[0].status, de::Status::NonFinite);
 }
+
+TEST(Comparison, DegenerateStepRecordHasNoMisleadingMetrics) {
+    const auto rs = de::run_comparison(
+        {de::find_function("sin"), {1.0}, {1e-17}, {de::Method::Forward, de::Method::Central}});
+    ASSERT_EQ(rs.size(), 2u);
+    for (const auto& r : rs) {
+        EXPECT_EQ(r.status, de::Status::DegenerateStep);
+        EXPECT_TRUE(std::isnan(r.estimate));
+        EXPECT_TRUE(std::isnan(r.absolute_error));
+        EXPECT_FALSE(r.relative_error.has_value());
+        EXPECT_NEAR(r.reference, std::cos(1.0), 1e-15);  // reference is still reported
+    }
+    EXPECT_STREQ(de::to_string(de::Status::DegenerateStep), "degenerate_step");
+}

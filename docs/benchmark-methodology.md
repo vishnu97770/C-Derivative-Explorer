@@ -28,3 +28,5 @@ Environment: GCC 15.2.0, CMake Release (default flags), Linux 7.0.0-38, 12th Gen
 | exp | central | 15.19 | 15.11 | 15.26 |
 
 Interpretation limits: both methods evaluate f twice (forward also validates the domain of x), so the small gap is expected and says nothing general. The timed path includes `std::function` indirection and domain checks, which dominate for cheap functions like x². Results are specific to this machine and run; single session, not repeated across days or cores; no cross-compiler comparison.
+
+Note (2026-10-16): the table above and `experiments/results/bench-raw.csv` were measured before the `degenerate_step` check was added to the difference methods (two extra comparisons per estimate). They have not been re-measured; the benchmark harness itself is unchanged.

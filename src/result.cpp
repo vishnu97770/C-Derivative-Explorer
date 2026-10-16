@@ -12,6 +12,8 @@ const char* to_string(Status s) {
             return "invalid_domain";
         case Status::NonFinite:
             return "non_finite";
+        case Status::DegenerateStep:
+            return "degenerate_step";
     }
     return "unknown";
 }

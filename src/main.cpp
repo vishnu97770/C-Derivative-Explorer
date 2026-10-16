@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cerrno>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -19,9 +21,15 @@ constexpr const char* kUsage =
     "  --method NAME|--methods L forward, central (comma-separated list allowed; default both)\n"
     "  --step LIST|--steps LIST  Comma-separated positive step sizes h\n"
     "  --log-steps A:B[:N]       Alternative to --steps: N log-spaced h from 10^-A to 10^-B\n"
-    "                            (default N = B-A+1 i.e. one per decade; e.g. 1:16)\n"
+    "                            N is a positive integer <= 100000 (default floor(B-A)+1,\n"
+    "                            i.e. one per decade; e.g. 1:16)\n"
     "  --csv PATH                Write results to a CSV file\n"
-    "  --help                    Show this help\n";
+    "  --help                    Show this help\n"
+    "\n"
+    "Exit codes: 0 success; 1 CSV output failure; 2 usage error; 3 every result had a\n"
+    "non-ok status (nothing usable computed); 70 internal error.\n";
+
+constexpr long kMaxLogSteps = 100000;
 
 std::vector<std::string> split(const std::string& s, char sep) {
     std::vector<std::string> out;
@@ -45,6 +53,18 @@ bool parse_list(const std::string& s, std::vector<double>& out) {
         out.push_back(v);
     }
     return !out.empty();
+}
+
+// Strict positive-integer parser: digits only (no sign, decimal point or exponent),
+// no overflow, 1 <= value <= kMaxLogSteps.
+bool parse_count(const std::string& s, long& out) {
+    if (s.empty() || !std::all_of(s.begin(), s.end(), [](char c) { return c >= '0' && c <= '9'; }))
+        return false;
+    errno = 0;
+    const long v = std::strtol(s.c_str(), nullptr, 10);
+    if (errno == ERANGE || v < 1 || v > kMaxLogSteps) return false;
+    out = v;
+    return true;
 }
 
 int usage_error(const std::string& msg) {
@@ -86,16 +106,30 @@ int main(int argc, char** argv) {
         } else if (a == "--log-steps") {
             const char* v = need(i, a);
             if (!v) return 2;
-            const auto p = split(v, ':');
-            double lo, hi, n = 0;
-            if (p.size() < 2 || p.size() > 3 || !parse_double(p[0], lo) ||
-                !parse_double(p[1], hi) || hi < lo ||
-                (p.size() == 3 && (!parse_double(p[2], n) || n < 1)))
-                return usage_error("--log-steps expects A:B[:N] with B >= A");
-            if (p.size() == 2) n = hi - lo + 1;
-            const int count = static_cast<int>(n);
-            for (int k = 0; k < count; ++k) {
-                const double e = count == 1 ? lo : lo + (hi - lo) * k / (count - 1);
+            const std::string spec = v;
+            const auto p = split(spec, ':');
+            // split() drops a trailing empty field, so "1:2:" must be caught via the colon count.
+            const auto colons = static_cast<std::size_t>(std::count(spec.begin(), spec.end(), ':'));
+            double lo, hi;
+            if (p.size() < 2 || p.size() > 3 || colons != p.size() - 1 || !parse_double(p[0], lo) ||
+                !parse_double(p[1], hi) || !std::isfinite(lo) || !std::isfinite(hi) || hi < lo)
+                return usage_error("--log-steps expects A:B[:N] with finite A <= B");
+            long count = 0;
+            if (p.size() == 3) {
+                if (!parse_count(p[2], count))
+                    return usage_error("--log-steps count N must be an integer in 1.." +
+                                       std::to_string(kMaxLogSteps) + ", got '" + p[2] + "'");
+            } else {
+                const double decades = std::floor(hi - lo) + 1.0;
+                if (decades > static_cast<double>(kMaxLogSteps))
+                    return usage_error("--log-steps range yields more than " +
+                                       std::to_string(kMaxLogSteps) + " steps");
+                count = static_cast<long>(decades);
+            }
+            for (long k = 0; k < count; ++k) {
+                const double e = count == 1 ? lo
+                                            : lo + (hi - lo) * static_cast<double>(k) /
+                                                       static_cast<double>(count - 1);
                 hs.push_back(std::pow(10.0, -e));
             }
         } else {
@@ -143,6 +177,14 @@ int main(int argc, char** argv) {
                 return 1;
             }
             std::printf("wrote %s\n", csv_path.c_str());
+        }
+
+        // A run in which no row produced a usable estimate is a failed experiment. Partial
+        // success (at least one ok row) keeps exit code 0. CSV failure (1) takes precedence.
+        if (!results.empty() && not_ok == results.size()) {
+            std::cerr << "error: all " << results.size()
+                      << " results have non-ok status; no usable estimate was computed\n";
+            return 3;
         }
     } catch (const std::exception& e) {
         std::cerr << "internal error: " << e.what() << "\n";

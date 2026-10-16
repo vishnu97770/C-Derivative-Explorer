@@ -15,6 +15,12 @@ python3 scripts/plot_results.py "$OUT/step-sweep-exp.csv" "$OUT/step-sweep-exp.p
   echo "command: experiments/step-sweep.sh"
   echo "date_utc: $(date -u +%FT%TZ)"
   echo "commit: $(git rev-parse HEAD 2>/dev/null || echo unknown)"
+  # Flag results produced from a tree that differs from the recorded commit.
+  if ! git diff --quiet HEAD -- . ':!experiments/results' 2>/dev/null; then
+    echo "working_tree: modified (source differs from the commit above)"
+  else
+    echo "working_tree: clean"
+  fi
   echo "compiler: $(c++ --version | head -1)"
   echo "os: $(uname -sr)"
 } > "$OUT/manifest.txt"
