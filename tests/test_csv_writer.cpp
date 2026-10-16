@@ -55,8 +55,8 @@ TEST(Csv, WritesFile) {
 }
 
 TEST(Csv, DegenerateStepRow) {
-    const auto rs = de::run_comparison(
-        {de::find_function("x2"), {1.0}, {1e-17}, {de::Method::Forward}});
+    const auto rs =
+        de::run_comparison({de::find_function("x2"), {1.0}, {1e-17}, {de::Method::Forward}});
     std::ostringstream os;
     de::write_csv(os, rs);
     // estimate, absolute_error and relative_error are empty; the reason is in status.
